@@ -375,8 +375,8 @@ def auto_extract_data(text, tables, photos):
         data["certifications"] = cert_entries
 
     # ── 8. 一句话定位 ──
-    if data["title"] and data["experience_years"]:
-        data["one_liner"] = f"{data['experience_years']}年基建项目管理经验，{data['title']}，持一级建造师（市政），覆盖盾构/TBM/矿山法多工法"
+    if data["title"] and data["stats"]["experience_years"]:
+        data["one_liner"] = f"{data['stats']['experience_years']}年基建项目管理经验，{data['title']}，持一级建造师（市政），覆盖盾构/TBM/矿山法多工法"
     elif data["title"]:
         data["one_liner"] = f"资深{data['title']}，持一级建造师（市政），覆盖盾构/TBM/矿山法多工法"
 

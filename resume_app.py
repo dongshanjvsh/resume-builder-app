@@ -155,6 +155,49 @@ DEFAULT_DATA = {
     "closing": "以履约立身，以经营致远，以创新破局。",
 }
 
+# 示例模板（何进江——基建央企项目经理竞聘数据，供参考/快速体验）
+SAMPLE_DATA = {
+    "name": "何进江",
+    "title": "中铁隧道集团二处有限公司 · 党支部书记、项目经理",
+    "one_liner": "兰州交通大学土木工程本科，17年隧道与轨道交通工程管理经验，历任南京地铁七号线、北京地铁1号线支线、深圳西丽站等重大项目项目经理，累计管理合同额超42亿元，具备盾构/矿山法/明挖法全工法管理能力，持有一级建造师（市政公用工程），清华大学卓越领袖研修班（2026年9月结业）",
+    "photo": "",
+    "gender": "男", "birth": "1985年2月", "hometown": "", "political": "", "phone": "", "email": "", "location": "福建厦泉/深圳",
+    "stats": {"experience_years": "17", "total_contract": "42+", "project_count": "3", "team_size": "100+/2000+"},
+    "track_business": [
+        "福建片区区域经营负责人，统筹市场开发与客户关系维护",
+        "深圳西丽站合同额32.76亿元，二处分劈19.72亿元，A类重点项目",
+        "南京地铁清凉山站优化围护结构方案，节约成本2300万元",
+        "三个项目责任成本盈利达标率100%，累计超责任成本盈利568.81万元"
+    ],
+    "track_delivery": [
+        "累计管理合同额超42亿元，涵盖地铁车站（明挖/暗挖）、盾构隧道、矿山法隧道全类型",
+        "南京清凉山站独拱两层岛式车站，大跨断面303㎡，优化工序节约工期约310天",
+        "北京体育场南街站双层三跨矩形框架结构，地下连续墙+钢支撑明挖法",
+        "深圳西丽站六大施工难点攻坚：盾构下穿建构筑物、小净距隧道、五线并行特大桥",
+        '"五位一体"管控体系：安全零事故、质量优良、成本受控'
+    ],
+    "experiences": [
+        {"period": "2008年7月 — 2021年1月", "company": "中铁隧道集团二处有限公司", "role": "技术员 → 工程部长 → 副总工程师", "summary": "先后参与多个隧道及地铁项目技术管理工作，从一线技术岗位逐步成长，积累了矿山法、盾构法、明挖法等隧道施工全工法技术经验，其间取得注册一级建造师执业资格。"},
+        {"period": "2021年2月 — 2024年2月", "company": "南京地铁七号线D7-TA02标土建七工区清凉山站项目经理部", "role": "副经理（主持工作），负责项目全面工作", "summary": "主持南京地铁七号线清凉山站建设，项目合同额4.27亿元。通过优化围护结构、调整施工顺序、优化暗挖段支护参数等系列技术管理措施，实现责任成本盈利453.81万元。"},
+        {"period": "2024年2月 — 2025年3月", "company": "北京轨道交通1号线支线工程土建施工09合同段项目经理部", "role": "项目经理", "summary": "主持北京地铁1号线支线体育场南街站建设，合同额2.44亿元。地下两层岛式车站，围护结构采用800mm地下连续墙+三道钢支撑。实现责任成本盈利115万元。"},
+        {"period": "2025年3月 — 至今", "company": "新建深圳西丽站及相关工程XLSG-1标项目经理部", "role": "党支部书记、项目经理（兼任一分部工作）", "summary": "主持深圳市重点工程——新建深圳西丽站及相关工程XLSG-1标，合同总额32.76亿元（二处分劈19.72亿元），管理类别A类。项目涵盖西丽隧道（盾构法+矿山法）、塘朗山隧道、大沙河特大桥等重难点工程。"}
+    ],
+    "projects": [
+        {"name": "南京地铁七号线清凉山站", "method": "矿山法", "role": "副经理（主持工作）", "period": "2021.02 — 2024.02", "metrics": [{"value": "4.27亿", "label": "合同额"}, {"value": "596.65m", "label": "车站总长"}, {"value": "303㎡", "label": "最大断面"}, {"value": "2300万", "label": "节约成本"}], "highlights": ["优化围护结构为钻孔灌注咬合桩，节约成本2300万元", "暗挖段优化拱盖法支护参数，节约工期约90天", "针对303㎡大跨断面，利用临时中立柱及增设L型吊点确保二衬钢筋稳定"]},
+        {"name": "北京地铁1号线支线体育场南街站", "method": "明挖法", "role": "项目经理", "period": "2024.02 — 2025.03", "metrics": [{"value": "2.44亿", "label": "合同额"}, {"value": "229.2m", "label": "车站长度"}, {"value": "800mm", "label": "地下连续墙"}, {"value": "6%", "label": "成本盈利率"}], "highlights": ["双层三跨矩形框架结构，800mm地下连续墙+三道钢支撑围护体系", "实现工程成本盈利率6%，责任成本盈利率2%", "3个出入口+2个安全出口+2组风亭，功能布局完整"]},
+        {"name": "新建深圳西丽站及相关工程XLSG-1标", "method": "盾构", "role": "党支部书记、项目经理", "period": "2025.03 — 至今", "metrics": [{"value": "32.76亿", "label": "合同总额"}, {"value": "19.72亿", "label": "二处分劈"}, {"value": "2025-2028", "label": "合同工期"}, {"value": "A类", "label": "管理类别"}], "highlights": ["深圳市重点工程，西丽隧道盾构法及矿山法下穿多处建构筑物", "塘朗山隧道小净距施工+燕尾段大断面，工法转换复杂", "大沙河特大桥5线7股并行、多处上跨市政道路"]}
+    ],
+    "education": [
+        {"school": "兰州交通大学", "major": "土木工程", "degree": "全日制本科", "period": "2004.09 — 2008.07"},
+        {"school": "清华大学", "major": "卓越领袖研修班", "degree": "研修深造", "period": "2025 — 2026.09（在读）"}
+    ],
+    "certifications": [
+        {"name": "一级建造师（市政公用工程）", "year": "2019"},
+        {"name": "职业项目经理（三级）", "year": "2025"}
+    ],
+    "closing": "以履约立身，以经营致远，以创新破局。",
+}
+
 
 def extract_docx(filepath):
     """解析 .docx 文件"""
@@ -237,15 +280,15 @@ def auto_extract_data(text, tables, photos):
 
     # ── 2. 个人信息提取 ──
     patterns_personal = [
-        ("name", [r'姓\s*名[\s：:]*(\S{2,4})', r'^(\S{2,4})$[\s\n]*.*?(?:性别|出生)']),
-        ("gender", [r'性\s*别[\s：:]*(\S+)']),
-        ("birth", [r'出生[年月日日期]*[\s：:]*(\S{6,12})', r'出生[年月日日期]*[\s：:]*(\d{4}[年.-]\d{1,2}[月.-]\d{1,2})']),
-        ("political", [r'政治[面貌面貌]*[\s：:]*(\S{2,8})']),
-        ("hometown", [r'籍\s*贯[\s：:]*(\S{2,10})']),
-        ("phone", [r'(?:手机|电话|联系方式)[\s：:]*(\d{11})', r'(\d{11})']),
-        ("email", [r'(?:邮箱|E-?mail)[\s：:]*([\w.-]+@[\w.-]+)', r'([\w.-]+@[\w.-]+\.[a-zA-Z]{2,})']),
-        ("location", [r'(?:工作地|所在地|现住址)[\s：:]*(\S{4,20})']),
-        ("title", [r'(?:职务|岗位|现任|职称)[\s：:]*(\S{4,30})']),
+        ("name", [r'姓\s*名\s*[：:：]\s*(\S{2,4})', r'姓名\s+(\S{2,4})']),
+        ("gender", [r'性\s*别\s*[：:：]\s*(\S{1,2})']),
+        ("birth", [r'出生[年月日日期]*\s*[：:：]\s*(\d{4}\s*[年.-]\s*\d{1,2}\s*[月.-]?\s*\d{0,2})', r'出生[年月日日期]*\s*[：:：]\s*(\S{6,12})']),
+        ("political", [r'政治[面貌]*\s*[：:：]\s*(\S{2,8})']),
+        ("hometown", [r'籍\s*贯\s*[：:：]\s*(\S{2,10})']),
+        ("phone", [r'(?:手机|电话|联系方式)\s*[：:：]\s*(\d{11})']),
+        ("email", [r'(?:邮箱|E-?mail)\s*[：:：]\s*([\w.-]+@[\w.-]+\.[a-zA-Z]{2,})']),
+        ("location", [r'(?:工作地|所在地|现住址)\s*[：:：]\s*(\S{4,20})']),
+        ("title", [r'(?:职务|岗位|现任|职称)\s*[：:：]\s*([一-龥\w]{2,20}(?:经理|总工|工程师|主任|主管|负责人))', r'现任\s*(\S{2,20})']),
     ]
     for field, patterns in patterns_personal:
         for pat in patterns:
@@ -256,10 +299,10 @@ def auto_extract_data(text, tables, photos):
 
     # ── 3. 统计数据提取 ──
     stats_patterns = [
-        ("experience_years", [r'(?:从业[年限时间]*|工作[年限时间]*|参加工作时间)[\s：:]*(\d+)\s*(?:年|年以[上内])', r'(\d{2})\s*年(?:以上)?从业']),
-        ("total_contract", [r'(?:合同[总额]*|管理合同额)[\s：:]*(\d+[\.\d]*)\s*(?:亿|万元|万)']),
-        ("project_count", [r'(?:项目[数量个数]*|管理项目)[\s：:]*(\d+)\s*(?:个|项)']),
-        ("team_size", [r'(?:团队[规模人数]*|管理人员)[\s：:]*(\d+[\+\d]*)\s*(?:人|名)']),
+        ("experience_years", [r'(?:从业|工作)\s*(?:年限|时间|经验)\s*[：:：]\s*(\d{1,2})\s*(?:年|年以[上内])', r'(\d{2})\s*年\s*(?:以上)?从业']),
+        ("total_contract", [r'(?:合同[总额]*|管理合同额)\s*[：:：]\s*(\d+[\.\d]*)\s*(?:亿|万元|万)', r'合同额[约达共]*\s*(\d+[\.\d]*)\s*(?:亿)']),
+        ("project_count", [r'(?:项目[数量个数]*|管理项目)\s*[：:：]\s*(\d+)\s*(?:个|项)']),
+        ("team_size", [r'(?:团队[规模人数]*|管理人员)\s*[：:：]\s*(\d+[\+\d]*)\s*(?:人|名)']),
     ]
     for field, patterns in stats_patterns:
         for pat in patterns:
@@ -450,6 +493,25 @@ with tab1:
     st.subheader("上传简历或认定表文件")
     uploaded = st.file_uploader("选择 .doc 或 .docx 文件", type=["doc", "docx"], key="upload")
 
+    # 示例模板按钮
+    col_a, col_b = st.columns([1, 1])
+    with col_a:
+        if st.button("📋 使用示例模板（快速体验）", use_container_width=True):
+            st.session_state['data'] = dict(SAMPLE_DATA)
+            # deep copy nested objects
+            st.session_state['data']['stats'] = dict(SAMPLE_DATA['stats'])
+            st.session_state['data']['track_business'] = list(SAMPLE_DATA['track_business'])
+            st.session_state['data']['track_delivery'] = list(SAMPLE_DATA['track_delivery'])
+            st.session_state['data']['experiences'] = [dict(e) for e in SAMPLE_DATA['experiences']]
+            st.session_state['data']['projects'] = [dict(p) for p in SAMPLE_DATA['projects']]
+            st.session_state['data']['education'] = [dict(e) for e in SAMPLE_DATA['education']]
+            st.session_state['data']['certifications'] = [dict(c) for c in SAMPLE_DATA['certifications']]
+            st.success("✅ 示例模板已加载！切换到「编辑数据」查看和修改。")
+    with col_b:
+        if st.button("🗑️ 清空所有数据", use_container_width=True):
+            st.session_state['data'] = dict(DEFAULT_DATA)
+            st.success("已清空。")
+
     if uploaded:
         with tempfile.NamedTemporaryFile(delete=False, suffix=f".{uploaded.name.split('.')[-1]}") as tmp:
             tmp.write(uploaded.read())
@@ -494,7 +556,15 @@ with tab1:
 # ── Tab 2: 编辑数据 ──
 with tab2:
     if 'data' not in st.session_state:
-        st.session_state['data'] = dict(DEFAULT_DATA)
+        # 首次打开：加载示例模板
+        st.session_state['data'] = dict(SAMPLE_DATA)
+        st.session_state['data']['stats'] = dict(SAMPLE_DATA['stats'])
+        st.session_state['data']['track_business'] = list(SAMPLE_DATA['track_business'])
+        st.session_state['data']['track_delivery'] = list(SAMPLE_DATA['track_delivery'])
+        st.session_state['data']['experiences'] = [dict(e) for e in SAMPLE_DATA['experiences']]
+        st.session_state['data']['projects'] = [dict(p) for p in SAMPLE_DATA['projects']]
+        st.session_state['data']['education'] = [dict(e) for e in SAMPLE_DATA['education']]
+        st.session_state['data']['certifications'] = [dict(c) for c in SAMPLE_DATA['certifications']]
 
     data = st.session_state['data']
 

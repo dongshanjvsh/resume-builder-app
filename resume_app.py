@@ -227,14 +227,38 @@ def extract_docx(filepath):
 
 
 def extract_doc(filepath):
-    """解析 .doc 文件（需要 antiword）"""
+    """解析 .doc 文件（antiword + olefile 双重提取）"""
     text = ""
+    # 方法1：antiword
     try:
         result = subprocess.run(["antiword", filepath], capture_output=True, text=True, timeout=15)
-        if result.returncode == 0:
+        if result.returncode == 0 and result.stdout.strip():
             text = result.stdout
     except Exception:
-        text = "[提示] 服务器未安装 antiword，.doc 文本提取失败。请上传 .docx 格式文件。"
+        pass
+
+    # 方法2：olefile 直接读取 WordDocument 流（兜底）
+    if not text:
+        try:
+            import olefile
+            ole = olefile.OleFileIO(filepath)
+            if ole.exists('WordDocument'):
+                raw = ole.openstream('WordDocument').read()
+                # 提取可打印字符序列（UTF-16LE 编码的中文文本）
+                try:
+                    decoded = raw.decode('utf-16-le', errors='ignore')
+                    # 提取中文字符和常见标点
+                    import re as re_mod
+                    chunks = re_mod.findall(r'[一-鿿\d\w\s.,;:;，。；：、\n]{2,}', decoded)
+                    text = '\n'.join(chunks)
+                except:
+                    pass
+            ole.close()
+        except Exception:
+            pass
+
+    if not text:
+        text = "[提示] 无法提取文本，请上传 .docx 格式文件。"
 
     photos = []
     try:
@@ -305,6 +329,10 @@ def auto_extract_data(text, tables, photos):
         "phone": [
             r'(?:手机|电话|联系方式)\s*[：:：\s]+(\d{11})',
             r'(?:手机|电话|联系方式)\s*[：:：]?\s*(\d{11})',
+        ],
+        "location": [
+            r'(?:工作地|所在地|现住址|地区)\s*[：:：\s]+(\S{3,20})',
+            r'(?:工作地|所在地|现住址|地区)\s*[：:：]?\s*(\S{3,20})',
         ],
     }
     for field, patterns in simple_patterns.items():

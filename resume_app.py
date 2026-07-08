@@ -4,7 +4,7 @@
 V4 · IBM×Apple×Stripe 设计语言 · 央企项目经理竞聘专用
 """
 import streamlit as st
-import json, os, base64, tempfile, subprocess
+import json, os, re, base64, tempfile, subprocess
 from pathlib import Path
 
 st.set_page_config(page_title="央企项目经理竞聘简历生成器", page_icon="📄", layout="wide")
@@ -182,7 +182,6 @@ def extract_doc(filepath):
     try:
         with open(filepath, 'rb') as f:
             raw = f.read()
-        # JPEG
         pos = 0
         while True:
             idx = raw.find(b'\xff\xd8\xff', pos)
@@ -194,7 +193,6 @@ def extract_doc(filepath):
                 pos = end + 2
             else:
                 pos = idx + 1
-        # PNG
         pos = 0
         while True:
             idx = raw.find(b'\x89PNG\r\n\x1a\n', pos)
@@ -212,6 +210,198 @@ def extract_doc(filepath):
     return text, photos
 
 
+def auto_extract_data(text, tables, photos):
+    """智能提取：从文本和表格中解析所有可用字段"""
+    data = dict(DEFAULT_DATA)
+
+    # ── 1. 从表格提取键值对 ──
+    kv = {}  # key -> value
+    for table in tables:
+        for row in table:
+            # 标准两列表：标签 | 值
+            if len(row) == 2:
+                k, v = row[0].strip(), row[1].strip()
+                if k and v:
+                    kv[k] = v
+            # 多列表：按奇偶配对
+            elif len(row) >= 4:
+                for i in range(0, len(row) - 1, 2):
+                    k, v = row[i].strip(), row[i + 1].strip()
+                    if k and v:
+                        kv[k] = v
+            # 单行可能是一个key，下一行是value（跳过）
+
+    # 合并表格KV到文本（表格数据优先级更高）
+    kv_lines = "\n".join(f"{k}：{v}" for k, v in kv.items())
+    combined_text = text + "\n" + kv_lines
+
+    # ── 2. 个人信息提取 ──
+    patterns_personal = [
+        ("name", [r'姓\s*名[\s：:]*(\S{2,4})', r'^(\S{2,4})$[\s\n]*.*?(?:性别|出生)']),
+        ("gender", [r'性\s*别[\s：:]*(\S+)']),
+        ("birth", [r'出生[年月日日期]*[\s：:]*(\S{6,12})', r'出生[年月日日期]*[\s：:]*(\d{4}[年.-]\d{1,2}[月.-]\d{1,2})']),
+        ("political", [r'政治[面貌面貌]*[\s：:]*(\S{2,8})']),
+        ("hometown", [r'籍\s*贯[\s：:]*(\S{2,10})']),
+        ("phone", [r'(?:手机|电话|联系方式)[\s：:]*(\d{11})', r'(\d{11})']),
+        ("email", [r'(?:邮箱|E-?mail)[\s：:]*([\w.-]+@[\w.-]+)', r'([\w.-]+@[\w.-]+\.[a-zA-Z]{2,})']),
+        ("location", [r'(?:工作地|所在地|现住址)[\s：:]*(\S{4,20})']),
+        ("title", [r'(?:职务|岗位|现任|职称)[\s：:]*(\S{4,30})']),
+    ]
+    for field, patterns in patterns_personal:
+        for pat in patterns:
+            m = re.search(pat, combined_text)
+            if m and m.group(1).strip():
+                data[field] = m.group(1).strip()
+                break
+
+    # ── 3. 统计数据提取 ──
+    stats_patterns = [
+        ("experience_years", [r'(?:从业[年限时间]*|工作[年限时间]*|参加工作时间)[\s：:]*(\d+)\s*(?:年|年以[上内])', r'(\d{2})\s*年(?:以上)?从业']),
+        ("total_contract", [r'(?:合同[总额]*|管理合同额)[\s：:]*(\d+[\.\d]*)\s*(?:亿|万元|万)']),
+        ("project_count", [r'(?:项目[数量个数]*|管理项目)[\s：:]*(\d+)\s*(?:个|项)']),
+        ("team_size", [r'(?:团队[规模人数]*|管理人员)[\s：:]*(\d+[\+\d]*)\s*(?:人|名)']),
+    ]
+    for field, patterns in stats_patterns:
+        for pat in patterns:
+            m = re.search(pat, combined_text)
+            if m:
+                data["stats"][field] = m.group(1).strip()
+                break
+
+    # 从业年限：从参工时间推算
+    if not data["stats"]["experience_years"]:
+        m = re.search(r'(?:参加工作时间|参工时间|入职时间)[\s：:]*(\d{4})', combined_text)
+        if m:
+            year = int(m.group(1))
+            data["stats"]["experience_years"] = str(2026 - year)
+
+    # ── 4. 教育背景 ──
+    edu_entries = []
+    # 模式1：学校 + 专业 + 学历 + 时间
+    edu_blocks = re.findall(
+        r'(\d{4}[年.-]\d{1,2})\s*[-–—至到]\s*(\d{4}[年.-]\d{1,2}|至今|现在).*?在?(\S{2,20}大学|\S{2,20}学院).*?(\S{2,20}(?:专业|系)).*?(本科|硕士|博士|大专|专科|研究生|研修)',
+        combined_text
+    )
+    for start, end, school, major, degree in edu_blocks:
+        edu_entries.append({"school": school, "major": major, "degree": degree, "period": f"{start} - {end}"})
+
+    # 模式2：简单 学校/专业/时间 提取
+    schools = re.findall(r'(?:毕业[于院校]|学校|院校)[\s：:]*(\S{2,30}(?:大学|学院))', combined_text)
+    majors = re.findall(r'(?:专业|所学专业)[\s：:]*(\S{2,20})', combined_text)
+    degrees = re.findall(r'(?:学历|学位)[\s：:]*(\S{2,6})', combined_text)
+    edu_times = re.findall(r'(?:在校时间|就读时间|学习时间)[\s：:]*(\d{4}[年.-]\d{1,2}\s*[-–—至到]\s*\d{4}[年.-]\d{1,2})', combined_text)
+    if not edu_entries and (schools or majors):
+        edu_entries.append({
+            "school": schools[0] if schools else "",
+            "major": majors[0] if majors else "",
+            "degree": degrees[0] if degrees else "",
+            "period": edu_times[0] if edu_times else ""
+        })
+    if edu_entries:
+        data["education"] = edu_entries
+
+    # ── 5. 工作经历 ──
+    exp_entries = []
+    # 尝试按时间+单位+岗位模式匹配
+    exp_blocks = re.findall(
+        r'(\d{4}[年.-]\d{1,2})\s*[-–—至到]\s*(\d{4}[年.-]\d{1,2}|至今|现在)\s+在?\s*(\S{2,40}(?:公司|集团|局|处|有限公司|项目部))\s*(?:担?任|从事)?\s*(\S{2,30}(?:经理|总工|工程师|主任|负责人|主管))?',
+        combined_text
+    )
+    for start, end, company, role in exp_blocks:
+        exp_entries.append({"period": f"{start} - {end}", "company": company, "role": role or "", "summary": ""})
+    # 从表格提取
+    for table in tables:
+        if len(table) > 1:
+            header = [c.lower() for c in table[0]]
+            has_time = any('时间' in h or '起止' in h or '日期' in h for h in header)
+            has_company = any('单位' in h or '公司' in h or '部门' in h for h in header)
+            if has_time and has_company:
+                for row in table[1:]:
+                    if len(row) >= 3:
+                        exp_entries.append({
+                            "period": row[0].strip() if len(row) > 0 else "",
+                            "company": row[1].strip() if len(row) > 1 else "",
+                            "role": row[2].strip() if len(row) > 2 else "",
+                            "summary": row[3].strip() if len(row) > 3 else "",
+                        })
+    if exp_entries:
+        data["experiences"] = exp_entries
+
+    # ── 6. 项目经验 ──
+    proj_entries = []
+    for table in tables:
+        if len(table) > 1:
+            header = [c for c in table[0]]
+            has_proj_name = any('项目' in h or '工程' in h or '名称' in h for h in header)
+            has_role = any('角色' in h or '岗位' in h or '职务' in h for h in header)
+            if has_proj_name:
+                for row in table[1:]:
+                    if len(row) >= 3 and any(row):
+                        proj = {"name": "", "role": "", "period": "", "method": "", "metrics": [], "highlights": []}
+                        proj["name"] = row[0].strip() if len(row) > 0 else ""
+                        proj["role"] = row[1].strip() if len(row) > 1 else ""
+                        proj["period"] = row[2].strip() if len(row) > 2 else ""
+                        if len(row) > 3 and row[3].strip():
+                            proj["highlights"] = [row[3].strip()]
+                        # 检测工法
+                        method_text = " ".join(row)
+                        for m, kw in [("盾构法", "盾构"), ("TBM法", "TBM"), ("矿山法", "矿山"), ("明挖法", "明挖")]:
+                            if kw in method_text:
+                                proj["method"] = m
+                                break
+                        proj_entries.append(proj)
+    # 从文本匹配项目
+    proj_names = re.findall(r'(?:项目名称|工程名称|项目)[\s：:]*(\S{4,40}(?:隧道|地铁|公路|工程|管廊|桥梁|铁路|高速|区间|车站))', combined_text)
+    if not proj_entries and proj_names:
+        for name in proj_names[:3]:
+            proj_entries.append({"name": name, "role": "", "period": "", "method": "", "metrics": [], "highlights": []})
+    if proj_entries:
+        data["projects"] = proj_entries
+
+    # ── 7. 证书 ──
+    cert_entries = []
+    cert_patterns = [
+        (r'一级建造师[（(](\S+?)[）)]', '一级建造师'),
+        (r'注册(\S{2,10}(?:工程师|建造师|造价师))', '注册'),
+        (r'(?:职业项目经理|项目经理).*?(\S{2,6}级)', '职业项目经理'),
+    ]
+    for pat, cert_type in cert_patterns:
+        for m in re.finditer(pat, combined_text):
+            name = m.group(0).strip()
+            if len(name) > 3:
+                year_match = re.search(r'(\d{4})', m.group(0) if m.lastindex else combined_text[m.end():m.end()+20])
+                cert_entries.append({"name": name, "year": year_match.group(1) if year_match else ""})
+    if cert_entries:
+        data["certifications"] = cert_entries
+
+    # ── 8. 一句话定位 ──
+    if data["title"] and data["experience_years"]:
+        data["one_liner"] = f"{data['experience_years']}年基建项目管理经验，{data['title']}，持一级建造师（市政），覆盖盾构/TBM/矿山法多工法"
+    elif data["title"]:
+        data["one_liner"] = f"资深{data['title']}，持一级建造师（市政），覆盖盾构/TBM/矿山法多工法"
+
+    # ── 9. 经营/履约双核 ──
+    biz_items = []
+    dlv_items = []
+    for k, v in kv.items():
+        if any(w in k for w in ['经营', '市场', '合同', '客户', '投标', '中标']):
+            biz_items.append(f"{k}：{v}")
+        if any(w in k for w in ['安全', '质量', '进度', '成本', '履约', '施工', '生产']):
+            dlv_items.append(f"{k}：{v}")
+    if biz_items:
+        data["track_business"] = biz_items[:5]
+    if dlv_items:
+        data["track_delivery"] = dlv_items[:5]
+
+    # ── 10. 照片 ──
+    if photos and not data["photo"]:
+        fmt, img_data = photos[0]
+        b64 = base64.b64encode(img_data).decode()
+        data["photo"] = f"data:image/{fmt};base64,{b64}"
+
+    return data
+
+
 def render_html(data):
     """Jinja2 渲染"""
     from jinja2 import Environment
@@ -224,7 +414,8 @@ def html_to_pdf(html_path):
     """Chrome headless → PDF（本地可用时）"""
     pdf_path = html_path.replace('.html', '.pdf')
     chrome_paths = [
-        "google-chrome", "chromium-browser",
+        "google-chrome", "chromium-browser", "chromium",
+        "/usr/bin/chromium", "/usr/bin/chromium-browser",
         "C:/Program Files/Google/Chrome/Application/chrome.exe",
         "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
     ]
@@ -286,25 +477,18 @@ with tab1:
         os.unlink(tmp_path)
 
         if st.button("📥 加载到编辑表单", use_container_width=True):
-            st.session_state['data'] = dict(DEFAULT_DATA)
             text = st.session_state.get('extracted_text', '')
-            import re
-            m = re.search(r'姓\s*名[:：\s]*(\S{2,4})', text)
-            if m:
-                st.session_state['data']['name'] = m.group(1)
-            m = re.search(r'性\s*别[:：\s]*(\S+)', text)
-            if m:
-                st.session_state['data']['gender'] = m.group(1)
-            m = re.search(r'出生[年月日][:：\s]*(\S+)', text)
-            if m:
-                st.session_state['data']['birth'] = m.group(1)
-            # 自动加载第一张照片
+            tables = st.session_state.get('extracted_tables', [])
             photos = st.session_state.get('extracted_photos', [])
-            if photos:
-                fmt, data = photos[0]
-                b64 = base64.b64encode(data).decode()
-                st.session_state['data']['photo'] = f"data:image/{fmt};base64,{b64}"
-            st.success("已加载！切换到「编辑数据」标签页修改。")
+            data = auto_extract_data(text, tables, photos)
+            st.session_state['data'] = data
+            # 提取结果摘要
+            filled = sum(1 for k, v in data.items() if v and k not in ('track_business', 'track_delivery', 'ai_scenarios', 'closing', 'skills'))
+            exp_count = len(data.get('experiences', []))
+            proj_count = len(data.get('projects', []))
+            edu_count = len(data.get('education', []))
+            cert_count = len(data.get('certifications', []))
+            st.success(f"✅ 已提取：{filled} 个字段 | {exp_count} 段工作经历 | {proj_count} 个项目 | {edu_count} 条教育 | {cert_count} 个证书 → 切换到「编辑数据」核对修改")
             st.rerun()
 
 # ── Tab 2: 编辑数据 ──
@@ -313,6 +497,26 @@ with tab2:
         st.session_state['data'] = dict(DEFAULT_DATA)
 
     data = st.session_state['data']
+
+    # 提取摘要
+    exp_n = len(data.get('experiences', []))
+    proj_n = len(data.get('projects', []))
+    edu_n = len(data.get('education', []))
+    cert_n = len(data.get('certifications', []))
+    has_photo = bool(data.get('photo', ''))
+    fields_filled = sum(1 for k, v in data.items() if v and k not in ('track_business', 'track_delivery', 'ai_scenarios', 'closing', 'skills', 'experiences', 'projects', 'education', 'certifications', 'awards', 'patents', 'stats', 'photo'))
+    stats_filled = sum(1 for v in data.get('stats', {}).values() if v)
+    if fields_filled > 0 or exp_n > 0:
+        cols = st.columns(6)
+        cols[0].metric("个人信息", fields_filled)
+        cols[1].metric("数据仪表盘", stats_filled)
+        cols[2].metric("工作经历", exp_n)
+        cols[3].metric("项目经验", proj_n)
+        cols[4].metric("教育背景", edu_n)
+        cols[5].metric("证书", cert_n)
+        if has_photo:
+            st.caption("📷 已提取照片")
+        st.divider()
 
     col1, col2, col3 = st.columns(3)
     with col1:

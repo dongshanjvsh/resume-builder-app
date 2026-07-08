@@ -196,6 +196,21 @@ SAMPLE_DATA = {
         {"name": "职业项目经理（三级）", "year": "2025"}
     ],
     "closing": "以履约立身，以经营致远，以创新破局。",
+    "skills": [
+        {"name": "项目管理", "color": "navy", "pct": 95},
+        {"name": "市场经营", "color": "gold", "pct": 85},
+        {"name": "技术创新", "color": "blue", "pct": 80},
+        {"name": "AI 数智化", "color": "red", "pct": 90}
+    ],
+    "ai_scenarios": [
+        {"icon": "1", "name": "日报/周报自动生成", "desc": "3-5小时 → 15分钟"},
+        {"icon": "2", "name": "会议纪要待办追踪", "desc": "1-2小时 → 15分钟"},
+        {"icon": "3", "name": "招标情报每日监测", "desc": "2小时 → 12分钟"},
+        {"icon": "4", "name": "施组方案智能起草", "desc": "编制周期缩短30%+"},
+        {"icon": "5", "name": "工法专利报告起草", "desc": "周期缩短50%+"}
+    ],
+    "awards": [],
+    "patents": [],
 }
 
 
@@ -497,15 +512,8 @@ with tab1:
     col_a, col_b = st.columns([1, 1])
     with col_a:
         if st.button("📋 使用示例模板（快速体验）", use_container_width=True):
-            st.session_state['data'] = dict(SAMPLE_DATA)
-            # deep copy nested objects
-            st.session_state['data']['stats'] = dict(SAMPLE_DATA['stats'])
-            st.session_state['data']['track_business'] = list(SAMPLE_DATA['track_business'])
-            st.session_state['data']['track_delivery'] = list(SAMPLE_DATA['track_delivery'])
-            st.session_state['data']['experiences'] = [dict(e) for e in SAMPLE_DATA['experiences']]
-            st.session_state['data']['projects'] = [dict(p) for p in SAMPLE_DATA['projects']]
-            st.session_state['data']['education'] = [dict(e) for e in SAMPLE_DATA['education']]
-            st.session_state['data']['certifications'] = [dict(c) for c in SAMPLE_DATA['certifications']]
+            import copy
+            st.session_state['data'] = copy.deepcopy(SAMPLE_DATA)
             st.success("✅ 示例模板已加载！切换到「编辑数据」查看和修改。")
     with col_b:
         if st.button("🗑️ 清空所有数据", use_container_width=True):
@@ -556,15 +564,9 @@ with tab1:
 # ── Tab 2: 编辑数据 ──
 with tab2:
     if 'data' not in st.session_state:
-        # 首次打开：加载示例模板
-        st.session_state['data'] = dict(SAMPLE_DATA)
-        st.session_state['data']['stats'] = dict(SAMPLE_DATA['stats'])
-        st.session_state['data']['track_business'] = list(SAMPLE_DATA['track_business'])
-        st.session_state['data']['track_delivery'] = list(SAMPLE_DATA['track_delivery'])
-        st.session_state['data']['experiences'] = [dict(e) for e in SAMPLE_DATA['experiences']]
-        st.session_state['data']['projects'] = [dict(p) for p in SAMPLE_DATA['projects']]
-        st.session_state['data']['education'] = [dict(e) for e in SAMPLE_DATA['education']]
-        st.session_state['data']['certifications'] = [dict(c) for c in SAMPLE_DATA['certifications']]
+        # 首次打开：加载示例模板（深拷贝所有嵌套对象）
+        import copy
+        st.session_state['data'] = copy.deepcopy(SAMPLE_DATA)
 
     data = st.session_state['data']
 

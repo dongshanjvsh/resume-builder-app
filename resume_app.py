@@ -456,9 +456,10 @@ with tab1:
             if data['phone']: found.append(f"手机={data['phone']}")
             if data['photo']: found.append("照片=已提取")
             if found:
-                st.success(f"✅ 已提取：{' | '.join(found)}\n\n其他字段（工作经历/项目/教育/证书等）请到「编辑数据」页手动填写或粘贴。")
+                st.success(f"✅ 已提取：{' | '.join(found)}")
+                st.info("👉 请切换到上方「✏️ 编辑数据」标签页，查看已载入的数据并补全其他字段。")
             else:
-                st.warning("⚠️ 未能从文件中自动提取信息。请在「编辑数据」页手动填写，或点击「使用示例模板」快速体验。")
+                st.warning("⚠️ 未能从文件中自动提取信息。请切换到「编辑数据」页手动填写，或点击「使用示例模板」快速体验。")
             st.rerun()
 
 # ── Tab 2: 编辑数据 ──

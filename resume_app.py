@@ -564,9 +564,8 @@ with tab1:
 # ── Tab 2: 编辑数据 ──
 with tab2:
     if 'data' not in st.session_state:
-        # 首次打开：加载示例模板（深拷贝所有嵌套对象）
-        import copy
-        st.session_state['data'] = copy.deepcopy(SAMPLE_DATA)
+        # 首次打开：空白表单（不加载任何模板，避免数据污染）
+        st.session_state['data'] = dict(DEFAULT_DATA)
 
     data = st.session_state['data']
 

@@ -416,51 +416,53 @@ with tab1:
             st.success("已清空，可重新上传或使用模板。")
 
     if uploaded:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=f".{uploaded.name.split('.')[-1]}") as tmp:
-            tmp.write(uploaded.read())
-            tmp_path = tmp.name
+        # 仅首次上传或换文件时重新提取，避免覆盖用户手动编辑
+        file_key = f"{uploaded.name}_{uploaded.size}"
+        if st.session_state.get('_last_extracted_file') != file_key:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=f".{uploaded.name.split('.')[-1]}") as tmp:
+                tmp.write(uploaded.read())
+                tmp_path = tmp.name
 
-        if uploaded.name.endswith('.docx'):
-            text, tables = extract_docx(tmp_path)
-            st.session_state['extracted_text'] = text
-            st.session_state['extracted_tables'] = tables
-            st.session_state['extracted_photos'] = []
-            st.text_area("提取文本", text[:3000], height=250)
-            st.info(f"提取 {len(text)} 字符，{len(tables)} 个表格")
-        else:
-            text, photos = extract_doc(tmp_path)
+            if uploaded.name.endswith('.docx'):
+                text, tables = extract_docx(tmp_path)
+                photos = []
+            else:
+                text, photos = extract_doc(tmp_path)
+                tables = []
+
+            os.unlink(tmp_path)
             st.session_state['extracted_text'] = text
             st.session_state['extracted_photos'] = photos
-            st.session_state['extracted_tables'] = []
-            st.text_area("提取文本", text[:3000], height=250)
-            if photos:
-                st.success(f"提取 {len(photos)} 张照片")
-                for i, (fmt, data) in enumerate(photos):
-                    b64 = base64.b64encode(data).decode()
-                    st.image(f"data:image/{fmt};base64,{b64}", caption=f"照片 {i+1}", width=120)
 
-        os.unlink(tmp_path)
-
-        if st.button("📥 提取基本信息并载入表单", use_container_width=True):
-            text = st.session_state.get('extracted_text', '')
-            tables = st.session_state.get('extracted_tables', [])
-            photos = st.session_state.get('extracted_photos', [])
             data = auto_extract_data(text, tables, photos)
             st.session_state['data'] = data
-            # 汇总提取结果
-            found = []
-            if data['name']: found.append(f"姓名={data['name']}")
-            if data['gender']: found.append(f"性别={data['gender']}")
-            if data['birth']: found.append(f"出生={data['birth']}")
-            if data['political']: found.append(f"政治面貌={data['political']}")
-            if data['phone']: found.append(f"手机={data['phone']}")
-            if data['photo']: found.append("照片=已提取")
-            if found:
-                st.success(f"✅ 已提取：{' | '.join(found)}")
-                st.info("👉 请切换到上方「✏️ 编辑数据」标签页，查看已载入的数据并补全其他字段。")
-            else:
-                st.warning("⚠️ 未能从文件中自动提取信息。请切换到「编辑数据」页手动填写，或点击「使用示例模板」快速体验。")
-            st.rerun()
+            st.session_state['_last_extracted_file'] = file_key
+
+        # 显示结果（从 session_state 读取，避免重复提取）
+        data = st.session_state.get('data', {})
+        text = st.session_state.get('extracted_text', '')
+        photos = st.session_state.get('extracted_photos', [])
+
+        if text:
+            st.text_area("📝 提取的原始文本（供核对参考）", text[:3000], height=250)
+        if photos:
+            for i, (fmt, img_data) in enumerate(photos):
+                b64 = base64.b64encode(img_data).decode()
+                st.image(f"data:image/{fmt};base64,{b64}", caption=f"照片 {i+1}", width=120)
+
+        found = []
+        if data.get('name'): found.append(f"姓名={data['name']}")
+        if data.get('gender'): found.append(f"性别={data['gender']}")
+        if data.get('birth'): found.append(f"出生={data['birth']}")
+        if data.get('political'): found.append(f"政治面貌={data['political']}")
+        if data.get('phone'): found.append(f"手机={data['phone']}")
+        if data.get('location'): found.append(f"工作地={data['location']}")
+        if data.get('photo'): found.append("照片=已提取")
+        if found:
+            st.success(f"✅ 已自动提取并载入表单：{' | '.join(found)}")
+            st.info("👉 请切换到上方「✏️ 编辑数据」标签页，查看并补全工作经历、项目经验等内容。")
+        else:
+            st.warning("⚠️ 未能自动提取信息。建议：① 切换到「编辑数据」手动填写 ② 或点击「使用示例模板」参考格式。")
 
 # ── Tab 2: 编辑数据 ──
 with tab2:
